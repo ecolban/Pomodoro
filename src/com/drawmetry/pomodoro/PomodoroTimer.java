@@ -4,9 +4,7 @@ import java.applet.Applet;
 import java.applet.AudioClip;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
@@ -14,25 +12,25 @@ import java.net.URL;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
-@SuppressWarnings("serial")
-public class PomodoroTimer extends JPanel implements Runnable, ActionListener {
+public class PomodoroTimer implements Runnable, ActionListener {
 
-	private javax.swing.Timer ticker = new javax.swing.Timer(1000, this);
+	private Timer ticker = new Timer(1000, this);
 	private long endTime;
 	private long timeRemaining = 0L;
-	private Font timeFont = new Font("Helvetica", Font.PLAIN, 48);
 	private JButton startCancelButton;
 	private boolean running;
 	private SpinnerModel hourModel = new SpinnerNumberModel(0, 0, 12, 1);
 	private SpinnerModel minuteModel = new SpinnerNumberModel(25, 0, 59, 1);
 	private SpinnerModel secondModel = new SpinnerNumberModel(0, 0, 59, 1);
+	private JTextField timeField;
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(new PomodoroTimer());
@@ -42,50 +40,17 @@ public class PomodoroTimer extends JPanel implements Runnable, ActionListener {
 	public void run() {
 		JFrame frame = new JFrame("Pomodoro");
 		frame.setLayout(new BorderLayout());
-		this.setPreferredSize(new Dimension(200, 100));
-		frame.add(this, BorderLayout.CENTER);
-		// tool bar
-		JToolBar toolBar = new JToolBar();
-
-		toolBar.add(new JLabel("H:"));
-		JSpinner hourSpinner = new JSpinner(hourModel);
-		toolBar.add(hourSpinner);
-
-		toolBar.add(new JLabel("M:"));
-		JSpinner minuteSpinner = new JSpinner(minuteModel);
-		toolBar.add(minuteSpinner);
-
-		toolBar.add(new JLabel("S:"));
-		JSpinner secondSpinner = new JSpinner(secondModel);
-		toolBar.add(secondSpinner);
-
+		JToolBar toolBar = configToolBar();
 		frame.add(toolBar, BorderLayout.NORTH);
-		// start/cancel button
-		startCancelButton = new JButton("START");
-		startCancelButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				startCancelButtonClicked();
-			}
-
-		});
+		configTimeField();
+		frame.add(timeField, BorderLayout.CENTER);
+		configStartCancelButton();
 		frame.add(startCancelButton, BorderLayout.SOUTH);
-		// usual stuff
 		frame.pack();
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 
-	}
-
-	@Override
-	public void paintComponent(Graphics g) {
-		g.setFont(timeFont);
-		g.setColor(Color.RED);
-		g.fillRect(0, 0, getWidth(), getHeight());
-		g.setColor(Color.WHITE);
-		g.drawString(formatTime(timeRemaining), 20, 70);
 	}
 
 	@Override
@@ -98,7 +63,44 @@ public class PomodoroTimer extends JPanel implements Runnable, ActionListener {
 			ticker.stop();
 			buzz();
 		}
-		repaint();
+		timeField.setText(formatTime(timeRemaining));
+	}
+
+	private JToolBar configToolBar() {
+		JToolBar toolBar = new JToolBar();
+	
+		toolBar.add(new JLabel(" H:"));
+		JSpinner hourSpinner = new JSpinner(hourModel);
+		toolBar.add(hourSpinner);
+	
+		toolBar.add(new JLabel(" M:"));
+		JSpinner minuteSpinner = new JSpinner(minuteModel);
+		toolBar.add(minuteSpinner);
+	
+		toolBar.add(new JLabel(" S:"));
+		JSpinner secondSpinner = new JSpinner(secondModel);
+		toolBar.add(secondSpinner);
+		return toolBar;
+	}
+
+	private void configTimeField() {
+		timeField = new JTextField("0:00:00");
+		timeField.setBackground(Color.RED);
+		timeField.setForeground(Color.WHITE);
+		timeField.setFont(new Font("Helvetica", Font.PLAIN, 48));
+		timeField.setHorizontalAlignment(JTextField.CENTER);
+	}
+
+	private void configStartCancelButton() {
+		startCancelButton = new JButton("START");
+		startCancelButton.addActionListener(new ActionListener() {
+	
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				startCancelButtonClicked();
+			}
+	
+		});
 	}
 
 	private void startCancelButtonClicked() {
@@ -122,7 +124,7 @@ public class PomodoroTimer extends JPanel implements Runnable, ActionListener {
 		timeRemaining = 0L;
 		startCancelButton.setText("START");
 		running = false;
-		repaint();
+		timeField.setText(formatTime(timeRemaining));
 	}
 
 	private long getTime() {
