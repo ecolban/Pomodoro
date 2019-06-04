@@ -23,6 +23,7 @@ class PomodoroToolBar : JToolBar() {
         add(JLabel(" S:"))
         val secondSpinner = JSpinner(secondModel)
         add(secondSpinner)
+        isFloatable = false
     }
 
     val time: Long

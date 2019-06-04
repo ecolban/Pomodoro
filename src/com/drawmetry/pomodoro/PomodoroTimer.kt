@@ -10,18 +10,20 @@ import java.lang.System.currentTimeMillis as now
 
 class PomodoroTimer : Runnable {
 
-    private var endTime: Long = 0
-    private var running: Boolean = false
+    private var endTime: Long = 0L
+    private val running: Boolean
+        get() = now() < endTime
 
     private val timeBar = PomodoroToolBar()
 
     private val timeField: JTextField by lazy {
-        val field = JTextField("0:00:00")
-        field.background = Color.RED
-        field.foreground = Color.WHITE
-        field.font = Font("Helvetica", Font.PLAIN, 48)
-        field.horizontalAlignment = JTextField.CENTER
-        field
+        val jTextField = JTextField("0:00:00")
+        jTextField.isEditable = false
+        jTextField.background = Color.RED
+        jTextField.foreground = Color.WHITE
+        jTextField.font = Font("Helvetica", Font.PLAIN, 48)
+        jTextField.horizontalAlignment = JTextField.CENTER
+        jTextField
     }
 
     private val startCancelButton: JButton by lazy {
@@ -38,7 +40,6 @@ class PomodoroTimer : Runnable {
 
     private val ticker: Timer = Timer(1000, ::onTick)
 
-
     override fun run() {
         val frame = JFrame("Pomodoro")
         frame.layout = BorderLayout()
@@ -49,21 +50,20 @@ class PomodoroTimer : Runnable {
         frame.isResizable = false
         frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
         frame.isVisible = true
-
     }
 
     private fun start() {
         endTime = now() + timeBar.time
+        timeField.text = timeBar.time.toTimeString()
         startCancelButton.text = "CANCEL"
-        running = true
         ticker.start()
     }
 
     private fun cancel() {
-        ticker.stop()
-        startCancelButton.text = "START"
-        running = false
+        endTime = 0L
         timeField.text = 0L.toTimeString()
+        startCancelButton.text = "START"
+        ticker.stop()
     }
 
     private fun onTick(@Suppress("UNUSED_PARAMETER") e: ActionEvent) {
@@ -72,7 +72,6 @@ class PomodoroTimer : Runnable {
             timeField.text = timeRemaining.toTimeString()
         } else {
             startCancelButton.text = "START"
-            running = false
             ticker.stop()
             buzz()
             timeField.text = 0L.toTimeString()
@@ -91,7 +90,6 @@ class PomodoroTimer : Runnable {
         val hours = minutes / 60L
         return "%d:%02d:%02d".format(hours, minutes % 60L, seconds % 60L)
     }
-
 }
 
 fun main() {
